@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TrainTicket</string>
+    <string-array name="DestArray">
+        <item>Malang</item>
+        <item>Surabaya</item>
+        <item>Madiun</item>
+        <item>Blitar</item>
+    </string-array>
+</resources>
