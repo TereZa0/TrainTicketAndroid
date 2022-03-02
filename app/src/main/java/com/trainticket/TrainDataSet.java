@@ -1,13 +1,26 @@
 package com.trainticket;
 
 public class TrainDataSet {
-    String id,name,tclasss,capacity;
+    String id;
+    String name;
+    String tclasss;
+    String capacity;
+    String images;
 
-    public TrainDataSet(String id, String name, String tclasss, String capacity) {
+    public TrainDataSet(String id, String name, String tclasss, String capacity, String images) {
         this.id = id;
         this.name = name;
         this.tclasss = tclasss;
         this.capacity = capacity;
+        this.images = images;
+    }
+
+    public String getImages() {
+        return images;
+    }
+
+    public void setImages(String images) {
+        this.images = images;
     }
 
     public String getId() {

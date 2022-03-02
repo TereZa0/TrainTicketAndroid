@@ -7,10 +7,12 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
@@ -20,19 +22,26 @@ import android.widget.Spinner;
 import android.widget.TimePicker;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
 public class NewTrain extends Activity {
 
     DataBase db;
     EditText dtleavedate,dtleavetime,dtarrivetime,trainname,trainclass,quota,price,tbphoto;
     Spinner cbstart,cbend;
+    Bitmap TrainImages;
+    String currentpictimagepath = null;
+    String ImageName = null;
     private int mYear, mMonth, mDay, mHour, mMinute;
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
@@ -126,20 +135,30 @@ public class NewTrain extends Activity {
         datePickerDialog.show();
     }
 
+    private void galleryAddPic() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(currentpictimagepath);
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(contentUri);
+        this.sendBroadcast(mediaScanIntent);
+    }
+
     public void CommitTrain(View view){
         String start,end,leave;
         leave = dtleavedate.getText().toString();
 
-        String statement = "INSERT INTO train (name,origin,destination,timeleave,timearrive,date,carriagename,quota,price) " +
+        String statement = "INSERT INTO train (name,origin,destination,timeleave,timearrive,date,carriagename,quota,price,picture) " +
                 "VALUES ('"+ trainname.getText().toString() + "','"+ cbstart.getSelectedItem().toString() +"','"+ cbend.getSelectedItem().toString() +"'," +
                 "'"+ dtleavetime.getText().toString() +"','" + dtarrivetime.getText().toString() +"','" + dtleavedate.getText().toString() +"'," +
-                "'"+ trainclass.getText().toString() +"','"+ quota.getText().toString() +"','"+ price.getText().toString() +"')";
+                "'"+ trainclass.getText().toString() +"','"+ quota.getText().toString() +"','"+ price.getText().toString() +"', '" + ImageName + "')";
 
         if (dtleavetime.getText().toString() != "" && cbstart.getSelectedItem().toString() != "" && cbend.getSelectedItem().toString() != ""
                 && trainname.getText().toString() != "" && trainclass.getText().toString() != "" && quota.getText().toString() != "" && price.getText().toString() != ""){
             if (db.ExecDDL(statement) == true){
                 db.message(this,"Data has Committed");
-                Intent intent = new Intent(this, MainPage.class);
+                Intent intent = new Intent(this, TrainList.class);
+                galleryAddPic();
+
                 startActivity(intent);
             }
             else {
@@ -151,13 +170,44 @@ public class NewTrain extends Activity {
         }
     }
 
+    private File SaveImage() throws IOException {
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String Image_Form = "img_" + timestamp + "_";
+        File Dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        File ImageFile = File.createTempFile(Image_Form,".jpg",Dir);
+
+        currentpictimagepath = ImageFile.getAbsolutePath();
+        ImageName = ImageFile.getName();
+        //db.message(this, ImageFile.getName());
+        //db.message(this, ImageFile.getAbsolutePath());
+        return ImageFile;
+    }
+
     public void UploadPhoto(View view){
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_DENIED){
             requestPermissions(new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
         }
         else {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(intent,CAMERA_REQUEST);
+            File imageFiles = null;
+
+            try {
+                imageFiles = SaveImage();
+            }
+            catch (Exception ex){
+                ex.printStackTrace();
+            }
+
+            if (imageFiles != null){
+                Uri imageUri = FileProvider.getUriForFile(this, "com.trainticket", imageFiles);
+
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                intent.putExtra("data", currentpictimagepath);
+            }
+            startActivityForResult(intent,1);
         }
     }
 
@@ -170,17 +220,33 @@ public class NewTrain extends Activity {
             {
                 db.message(this, "camera permission granted");
 
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 
-                File imagesFolder = new File(Environment.getExternalStorageDirectory(), "TrainImages");
-                imagesFolder.mkdirs();
+//                File imagesFolder = new File(Environment.getExternalStorageDirectory(), "TrainImages");
+//                imagesFolder.mkdirs();
+//
+//                File image = new File(imagesFolder, "QR_" + timeStamp + ".png");
+//                Uri uriSavedImage = Uri.fromFile(image);
 
-                File image = new File(imagesFolder, "QR_" + timeStamp + ".png");
-                Uri uriSavedImage = Uri.fromFile(image);
+                File imageFiles = null;
 
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
-                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                try {
+                    imageFiles = SaveImage();
+                }
+                catch (Exception ex){
+                    ex.printStackTrace();
+                }
+
+                if (imageFiles != null){
+                    Uri imageUri = FileProvider.getUriForFile(this, "com.trainticket", imageFiles);
+
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                }
+
+                //cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage);
+                //startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                startActivityForResult(cameraIntent,1);
             }
             else
             {
@@ -188,12 +254,15 @@ public class NewTrain extends Activity {
             }
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK)
         {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            Bundle extras = getIntent().getExtras();
+            Bitmap photo = (Bitmap)extras.get("data");
+            TrainImages = photo;
             imageView.setImageBitmap(photo);
         }
     }

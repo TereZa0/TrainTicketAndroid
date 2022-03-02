@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -57,13 +58,14 @@ public class TrainList extends Activity {
 
         if (cs.getCount() > 0){
             while (cs.moveToNext()){
-                String id,name,tclass,capacity;
+                String id,name,tclass,capacity,imv;;
                 id = cs.getString(0);
                 name = cs.getString(1);
                 tclass = cs.getString(7);
                 capacity = cs.getString(8);
+                imv = cs.getString(10);
 
-                trainDataSets.add(new TrainDataSet(id,name,tclass,capacity));
+                trainDataSets.add(new TrainDataSet(id,name,tclass,capacity,imv));
             }
             trainListAdapter = new TrainListAdapter(this, trainDataSets);
             recyclerView.setAdapter(trainListAdapter);
@@ -85,6 +87,12 @@ public class TrainList extends Activity {
 
         Intent intent = new Intent(this, TrainEdit.class);
         intent.putExtra("TRAIN_ID",id.getText());
+        startActivity(intent);
+    }
+
+    public void BackWard(View view){
+        Intent intent = new Intent(this, MainPage.class);
+
         startActivity(intent);
     }
 }

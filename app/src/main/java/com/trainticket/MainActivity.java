@@ -40,11 +40,8 @@ public class MainActivity extends AppCompatActivity {
         table_passenger = "CREATE TABLE passenger (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT," +
-                "passport TEXT," +
-                "nik TEXT," +
                 "jk TEXT," +
                 "email TEXT," +
-                "hp TEXT," +
                 "password TEXT)";
         table_admin = "CREATE TABLE admin (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -60,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
                 "date TEXT," +
                 "carriagename TEXT," +
                 "quota INTEGER," +
-                "price INTEGER)";
+                "price INTEGER," +
+                "picture TEXT)";
         table_order = "CREATE TABLE order(" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "passenger_id INTEGER," +
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         try{
             db.ExecDDL(table_admin);
-            db.message(this, "Table Admin Created");
+            //db.message(this, "Table Admin Created");
         }
         catch (Exception ex){
             db.message(this, "Fail Creating Table Admin");
@@ -90,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
         try{
             db.ExecDDL(table_order);
-            db.message(this, "Table Order Created");
+            //db.message(this, "Table Order Created");
         }
         catch (Exception ex){
             db.message(this, "Fail Creating Table Order");
@@ -98,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
         try{
             db.ExecDDL(table_passenger);
-            db.message(this, "Table Passenger Created");
+            //db.message(this, "Table Passenger Created");
         }
         catch (Exception ex){
             db.message(this, "Fail Creating Table Passenger");
@@ -106,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         try{
             db.ExecDDL(table_payment);
-            db.message(this, "Table Payment Created");
+            //db.message(this, "Table Payment Created");
         }
         catch (Exception ex){
             db.message(this, "Fail Creating Table Payment");
@@ -114,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
         try{
             db.ExecDDL(table_train);
-            db.message(this, "Table Train Created");
+            //db.message(this, "Table Train Created");
         }
         catch (Exception ex){
             db.message(this, "Fail Creating Train Payment");
@@ -133,13 +131,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String query2 = "SELECT * FROM passenger";
-        String statement2 = "INSERT INTO passenger (name," +
-                "passport," +
-                "nik," +
+        String statement2 = "INSERT INTO passenger (" +
+                "name," +
                 "jk," +
                 "email," +
-                "hp," +
-                "password) VALUES ('asep','','123','L','asep12','0812','123')";
+                "password)" +
+                " VALUES ('asep','L','asep12','123')";
 
         Cursor cs2 = db.ExecQuery(query2);
 
